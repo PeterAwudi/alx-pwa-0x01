@@ -37,10 +37,17 @@ const Home: React.FC = () => {
           Sign up today to get access to the latest movies, exclusive content,
           and personalized movie recommendations.
         </p>
-        <Button title="Get Started" />
+        <Button
+          title="Get Started"
+          action={() => {
+            console.log("Get Started button clicked");
+            // You could redirect to a signup page or open a modal here
+          }}
+        />
       </section>
     </div>
   );
 };
 
 export default Home;
+

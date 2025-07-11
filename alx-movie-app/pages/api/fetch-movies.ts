@@ -2,7 +2,12 @@ import { MoviesProps } from "@/interfaces";
 import { NextApiRequest, NextApiResponse } from "next";
 
 export default async function handler(request: NextApiRequest, response: NextApiResponse) {
-  if (request.method === "POST") {
+  if (request.method !== "POST") {
+    response.setHeader("Allow", ["POST"]);
+    return response.status(405).end(`Method ${request.method} Not Allowed`);
+  }
+
+  try {
     const { year, page, genre } = request.body;
     const date = new Date();
 
@@ -12,13 +17,14 @@ export default async function handler(request: NextApiRequest, response: NextApi
 
     const resp = await fetch(url, {
       headers: {
-        "x-rapidapi-host": "moviesdatabase.p.rapidapi.com",
-        "x-rapidapi-key": `${process.env.MOVIE_API_KEY}`,
+        "X-RapidAPI-Host": "moviesdatabase.p.rapidapi.com",
+        "X-RapidAPI-Key": process.env.MOVIE_API_KEY!,
       },
     });
 
     if (!resp.ok) {
-      console.error("Fetch failed", await resp.text());
+      const errorText = await resp.text();
+      console.error("Fetch failed:", errorText);
       return response.status(500).json({ error: "Failed to fetch movies" });
     }
 
@@ -26,8 +32,8 @@ export default async function handler(request: NextApiRequest, response: NextApi
     const movies: MoviesProps[] = moviesResponse.results;
 
     return response.status(200).json({ movies });
-  } else {
-    response.setHeader("Allow", ["POST"]);
-    response.status(405).end(`Method ${request.method} Not Allowed`);
+  } catch (error) {
+    console.error("API error:", error);
+    return response.status(500).json({ error: "Internal Server Error" });
   }
 }
